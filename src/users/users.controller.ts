@@ -11,16 +11,24 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+
+@ApiTags('users')
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiOperation({ summary: 'Crear un usuario' })
+  @ApiResponse({ status: 201, description: 'Usuario creado' })
+  @ApiResponse({ status: 409, description: 'Email ya registrado' })
   @Post()
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
+  @ApiOperation({ summary: 'Listar todos los usuarios' })
+  @ApiResponse({ status: 200, description: 'Array de usuarios' })
   @Get()
   findAll() {
     return this.usersService.findAll();
