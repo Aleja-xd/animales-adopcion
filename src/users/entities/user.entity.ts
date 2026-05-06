@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Animal } from '../../animals/entities/animal.entity';
+import { AdoptionRequest } from '../../adoption-requests/entities/adoption-request.entity';
 
 @Entity('users')
 export class User {
@@ -36,4 +37,7 @@ export class User {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @OneToMany(() => AdoptionRequest, (request) => request.user)
+  adoptionRequests!: AdoptionRequest[];
 }

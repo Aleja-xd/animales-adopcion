@@ -20,8 +20,10 @@ export class AnimalsService {
   constructor(
     @InjectRepository(Animal)
     private readonly animalRepo: Repository<Animal>,
+
     @InjectRepository(Location)
     private readonly locationRepo: Repository<Location>,
+
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
   ) {}
@@ -32,10 +34,11 @@ export class AnimalsService {
     let location: Location | null = null;
     if (locationId) {
       location = await this.locationRepo.findOne({
-        where: { id: Number(locationId) },
+        where: { id: locationId },
       });
-      if (!location)
+      if (!location) {
         throw new NotFoundException(`Location ${locationId} no encontrada`);
+      }
     }
 
     let registeredBy: User | null = null;
@@ -43,16 +46,18 @@ export class AnimalsService {
       registeredBy = await this.userRepo.findOne({
         where: { id: registeredById },
       });
-      if (!registeredBy)
+      if (!registeredBy) {
         throw new NotFoundException(`User ${registeredById} no encontrado`);
+      }
     }
 
     try {
       const animal = this.animalRepo.create({
-        ...(rest as Partial<Animal>),
+        ...rest,
         location: location ?? undefined,
         registeredBy: registeredBy ?? undefined,
       });
+
       return await this.animalRepo.save(animal);
     } catch (err) {
       this.handleError(err);
@@ -61,7 +66,7 @@ export class AnimalsService {
 
   async findAll() {
     return this.animalRepo.find({
-      relations: ['registeredBy'], // location se carga sola (eager: true)
+      relations: ['registeredBy'], // consistente
     });
   }
 
@@ -70,13 +75,41 @@ export class AnimalsService {
       where: { id },
       relations: ['registeredBy', 'interestedUsers'],
     });
-    if (!animal) throw new NotFoundException(`Animal ${id} no encontrado`);
+
+    if (!animal) {
+      throw new NotFoundException(`Animal ${id} no encontrado`);
+    }
+
     return animal;
   }
 
   async update(id: string, dto: UpdateAnimalDto) {
     const animal = await this.findOne(id);
-    this.animalRepo.merge(animal, dto);
+
+    const { locationId, registeredById, ...rest } = dto;
+
+    if (locationId) {
+      const location = await this.locationRepo.findOne({
+        where: { id: locationId },
+      });
+      if (!location) {
+        throw new NotFoundException(`Location ${locationId} no encontrada`);
+      }
+      animal.location = location;
+    }
+
+    if (registeredById) {
+      const user = await this.userRepo.findOne({
+        where: { id: registeredById },
+      });
+      if (!user) {
+        throw new NotFoundException(`User ${registeredById} no encontrado`);
+      }
+      animal.registeredBy = user;
+    }
+
+    this.animalRepo.merge(animal, rest);
+
     try {
       return await this.animalRepo.save(animal);
     } catch (err) {
@@ -87,10 +120,11 @@ export class AnimalsService {
   async remove(id: string) {
     const animal = await this.findOne(id);
     await this.animalRepo.remove(animal);
+
     return { message: 'Animal eliminado exitosamente' };
   }
 
-  private handleError(err: unknown) {
+  private handleError(err: unknown): never {
     if (err instanceof QueryFailedError) {
       const error = err as QueryFailedError & {
         code?: string;
@@ -98,11 +132,16 @@ export class AnimalsService {
       };
 
       if (error.code === '23505') {
-        throw new BadRequestException(`Valor duplicado: ${error.detail ?? ''}`);
+        throw new BadRequestException(
+          `Valor duplicado: ${error.detail ?? ''}`,
+        );
       }
     }
 
-    this.logger.error(err);
+    this.logger.error(
+      err instanceof Error ? err.stack : JSON.stringify(err),
+    );
+
     throw new InternalServerErrorException(
       'Error inesperado — revisa los logs',
     );

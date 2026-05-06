@@ -11,7 +11,6 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAnimalDto {
-
   @ApiProperty({ example: 'Luna', description: 'Nombre del animal' })
 
   @IsString()
@@ -57,7 +56,6 @@ export class CreateAnimalDto {
   locationId?: string;
 
   @ApiProperty({ example: '3fa85f64-5717-4562-b3fc-2c963f66afa6', description: 'UUID del usuario que registra' })
-  
   @IsOptional()
   @IsUUID()
   registeredById?: string;

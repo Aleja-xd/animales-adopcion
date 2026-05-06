@@ -10,11 +10,13 @@ import {
 } from 'typeorm';
 import { Location } from '../../locations/entities/location.entity';
 import { User } from '../../users/entities/user.entity';
+import { OneToMany } from 'typeorm';
+import { AdoptionRequest } from '../../adoption-requests/entities/adoption-request.entity';
 
 @Entity('animals')
 export class Animal {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id: string;
 
   @Column() nombre!: string;
   @Column() especie!: string;
@@ -43,4 +45,7 @@ export class Animal {
 
   @CreateDateColumn() createdAt!: Date;
   @UpdateDateColumn() updatedAt!: Date;
+
+  @OneToMany(() => AdoptionRequest, (request) => request.animal)
+adoptionRequests!: AdoptionRequest[];
 }

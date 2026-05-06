@@ -1,4 +1,3 @@
-import { AdoptionRequestService } from '../adoption-request.service';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -22,26 +21,25 @@ export class AdoptionRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.AdoptionRequests, {
-    eager: false,
+  @ManyToOne(() => User, (user) => user.adoptionRequests, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   user: User;
 
   @ManyToOne(() => Animal, (animal) => animal.adoptionRequests, {
-    eager: false,
     nullable: false,
     onDelete: 'CASCADE',
   })
   animal: Animal;
 
   @Column({ type: 'text', nullable: true })
-  message?: string;
+  message: string | null;
 
   @Column({
     type: 'enum',
     enum: AdoptionStatus,
+    enumName: 'adoption_status_enum',
     default: AdoptionStatus.PENDING,
   })
   status: AdoptionStatus;

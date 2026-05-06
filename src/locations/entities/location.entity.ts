@@ -10,7 +10,7 @@ import { Animal } from '../../animals/entities/animal.entity';
 @Entity('locations')
 export class Location {
   @PrimaryGeneratedColumn('uuid')
-  id!: number;
+  id: string;
 
   @Column({ unique: true })
   name!: string; // nombre del refugio
